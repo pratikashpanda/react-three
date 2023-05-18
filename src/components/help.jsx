@@ -1,53 +1,50 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
-import { server } from "../index";
 import {
   Container,
   HStack,
   VStack,
-  Image,
   Heading,
   Text,
+  Image,
 } from "@chakra-ui/react";
+import axios from "axios";
+import { server } from "../index";
 import Loader from "./Loader";
-import ErrorComponent from "./ErrorComponent";
 
 const Coins = () => {
   const [coins, setCoins] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false)
+  const [loader, setLoader] = useState(true);
+  const [error, setError] = useState(false);
+  const [page, setPage] = useState();
+  const [currency, setCurrency] = useState("inr");
 
   useEffect(() => {
     const fetchCoins = async () => {
-      try {
-        const { data } = await axios.get(`${server}/coins/markets`);
-        setCoins(data);
-        setLoading(false);
-      } catch (error) {
-        setError(true)
-        setLoading(false)
-      }
-    };
+      const { data } = await axios.get(
+        `${server}/coins/markets?vs_currency=${currency}&page=${page}`
+      );
 
+      setCoins(data);
+      setLoader(false);
+      console.log(coins);
+    };
     fetchCoins();
   }, []);
 
-  if(error) return <ErrorComponent message={"Error while fetching Exchanges"}/>
-
   return (
     <Container maxW={"container.xl"}>
-      {loading ? (
+      {loader ? (
         <Loader />
       ) : (
         <>
           <HStack wrap={"wrap"}>
             {coins.map((i) => (
-              <ExchangeCard
-                key={i.id}
+              <CoinCard
+                id={i.id}
                 name={i.name}
                 img={i.image}
-                rank={i.trust_score_rank}
-                url={i.url}
+                rank={i.market_cap_rank}
+                symbol={i.symbol}
               />
             ))}
           </HStack>
@@ -57,7 +54,7 @@ const Coins = () => {
   );
 };
 
-const ExchangeCard = ({ name, img, rank, url }) => (
+const CoinCard = ({ name, img, rank, url }) => (
   <a href={url} target={"blank"}>
     <VStack
       w={"52"}
@@ -80,6 +77,5 @@ const ExchangeCard = ({ name, img, rank, url }) => (
     </VStack>
   </a>
 );
-
 
 export default Coins;
